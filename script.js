@@ -24,11 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const sectionSelector = document.getElementById('section-selector');
     const sectionAiSelector = document.getElementById('section-ai-selector');
     const sectionGeneratedPrompt = document.getElementById('section-generated-prompt');
-    const sectionAiResponse = document.getElementById('section-ai-response');
+    const sectionResponseChatgpt = document.getElementById('section-response-chatgpt');
+    const sectionResponseClaude = document.getElementById('section-response-claude');
+    const sectionResponseGemini = document.getElementById('section-response-gemini');
     const sectionFinalText = document.getElementById('section-final-text');
 
     const structIds = ['struct-abstract', 'struct-introduction', 'struct-methods', 'struct-results', 'struct-discussion', 'struct-limitations', 'struct-conclusion'];
-    const sectionIds = ['section-generated-prompt', 'section-ai-response', 'section-final-text'];
+    const sectionIds = ['section-generated-prompt', 'section-response-chatgpt', 'section-response-claude', 'section-response-gemini', 'section-final-text'];
 
     // Tab Logic
     const tabBtns = document.querySelectorAll('.tab-btn');

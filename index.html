@@ -220,8 +220,21 @@
                 </div>
 
                 <div class="form-group">
-                    <label>AI response memo</label>
-                    <textarea id="section-ai-response" name="sectionAiResponse" rows="8"></textarea>
+                    <label>AI Responses (Paste here for comparison)</label>
+                    <div class="response-grid">
+                        <div class="response-col">
+                            <label style="font-size: 0.85rem;">ChatGPT Response Memo</label>
+                            <textarea id="section-response-chatgpt" name="sectionResponseChatgpt" rows="8"></textarea>
+                        </div>
+                        <div class="response-col">
+                            <label style="font-size: 0.85rem;">Claude Response Memo</label>
+                            <textarea id="section-response-claude" name="sectionResponseClaude" rows="8"></textarea>
+                        </div>
+                        <div class="response-col">
+                            <label style="font-size: 0.85rem;">Gemini Response Memo</label>
+                            <textarea id="section-response-gemini" name="sectionResponseGemini" rows="8"></textarea>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
