@@ -12,6 +12,18 @@
         ※本アプリはAPI未接続のローカル動作ツールです。AIの出力は必ず人間が確認し、文献情報はPubMed等で事実確認を行ってください。
     </div>
 
+    <!-- Project Top Bar -->
+    <div class="project-topbar">
+        <div class="project-info">
+            <span class="project-label">Current Project:</span>
+            <input type="text" id="current-project-name" class="project-name-input" placeholder="Untitled Project">
+        </div>
+        <div class="project-actions">
+            <button type="button" id="btn-manage-projects" class="secondary-btn" style="padding: 6px 12px; font-size: 0.9rem;">Manage Projects</button>
+            <button type="button" id="btn-new-project" class="primary-btn" style="padding: 6px 12px; font-size: 0.9rem;">New Project</button>
+        </div>
+    </div>
+
     <div class="app-container">
         <!-- Left Panel: Input Form -->
         <div class="left-panel card">
@@ -319,6 +331,42 @@
                 <textarea id="final-draft" rows="12" placeholder="Combine and edit the best parts of the AI responses here..."></textarea>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Project Manager Modal -->
+    <div id="project-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Project Manager</h2>
+                <span class="close-modal" id="close-modal">&times;</span>
+            </div>
+            <div class="modal-controls">
+                <input type="text" id="project-search" placeholder="Search by name...">
+                <select id="project-filter">
+                    <option value="all">All Study Types</option>
+                    <option value="Case report">Case report</option>
+                    <option value="Retrospective study">Retrospective study</option>
+                    <option value="Prospective observational study">Prospective observational study</option>
+                    <option value="Clinical trial report">Clinical trial report</option>
+                    <option value="Conference abstract">Conference abstract</option>
+                    <option value="Letter to the editor">Letter to the editor</option>
+                </select>
+                <select id="project-sort">
+                    <option value="updated-desc">Updated (Newest First)</option>
+                    <option value="updated-asc">Updated (Oldest First)</option>
+                    <option value="created-desc">Created (Newest First)</option>
+                    <option value="name-asc">Name (A-Z)</option>
+                </select>
+            </div>
+            <div class="modal-actions" style="margin-bottom: 15px; display: flex; gap: 10px;">
+                <button type="button" id="btn-export-all" class="secondary-btn">Export All Projects (JSON)</button>
+                <input type="file" id="file-import-projects" accept=".json" style="display: none;">
+                <button type="button" id="btn-import-projects" class="secondary-btn">Import Project(s)</button>
+            </div>
+            <div id="project-list" class="project-list">
+                <!-- Projects will be rendered here dynamically -->
+            </div>
         </div>
     </div>
 

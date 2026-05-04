@@ -81,8 +81,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Save to Local Storage
-    btnSave.addEventListener('click', () => {
+
+    // Project Manager Elements
+    const currentProjectName = document.getElementById('current-project-name');
+    const btnManageProjects = document.getElementById('btn-manage-projects');
+    const btnNewProject = document.getElementById('btn-new-project');
+    const projectModal = document.getElementById('project-modal');
+    const closeModal = document.getElementById('close-modal');
+    const projectSearch = document.getElementById('project-search');
+    const projectFilter = document.getElementById('project-filter');
+    const projectSort = document.getElementById('project-sort');
+    const projectList = document.getElementById('project-list');
+    const btnExportAll = document.getElementById('btn-export-all');
+    const fileImportProjects = document.getElementById('file-import-projects');
+    const btnImportProjects = document.getElementById('btn-import-projects');
+
+    // --- State Management ---
+    let appState = {
+        activeProjectId: null,
+        projects: []
+    };
+
+    const generateId = () => 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+    const saveAppState = () => {
+        localStorage.setItem('paperAssistantData', JSON.stringify(appState));
+    };
+
+    const getActiveProject = () => {
+        return appState.projects.find(p => p.id === appState.activeProjectId);
+    };
+
+    const collectFormData = () => {
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
         data['finalDraft'] = finalDraft.value;
@@ -91,87 +121,292 @@ document.addEventListener('DOMContentLoaded', () => {
         data['responseGemini'] = document.getElementById('response-gemini').value;
         structIds.forEach(id => { data[id] = document.getElementById(id).value; });
         sectionIds.forEach(id => { data[id] = document.getElementById(id).value; });
-        
-        localStorage.setItem('paperAssistantData', JSON.stringify(data));
-        alert('Saved to local storage.');
-    });
+        return data;
+    };
 
-    // Load from Local Storage
-    const loadFromLocal = () => {
-        const savedData = localStorage.getItem('paperAssistantData');
-        if (savedData) {
-            const data = JSON.parse(savedData);
-            Object.keys(data).forEach(key => {
-                let element = document.querySelector(`[name="${key}"]`);
-                if (!element) {
-                    if (key === 'finalDraft') element = document.getElementById('final-draft');
-                    else if (key.startsWith('struct-') || key.startsWith('section-')) element = document.getElementById(key);
-                    else element = document.getElementById(`response-${key.replace('response', '').toLowerCase()}`);
-                }
-                if (element) {
-                    element.value = data[key];
-                }
-            });
+    const saveActiveProjectData = () => {
+        const proj = getActiveProject();
+        if (proj) {
+            proj.data = collectFormData();
+            proj.name = currentProjectName.value.trim() || "Untitled Project";
+            proj.updatedAt = new Date().toISOString();
+            saveAppState();
         }
     };
-    loadFromLocal();
 
-    // Clear All
-    btnClear.addEventListener('click', () => {
-        if(confirm('Are you sure you want to clear all fields?')) {
-            form.reset();
-            document.querySelectorAll('textarea').forEach(ta => ta.value = '');
-            localStorage.removeItem('paperAssistantData');
+    const loadActiveProject = () => {
+        const proj = getActiveProject();
+        if (!proj) return;
+        
+        currentProjectName.value = proj.name;
+        
+        // Reset form
+        form.reset();
+        document.querySelectorAll('textarea').forEach(ta => ta.value = '');
+        
+        const data = proj.data || {};
+        Object.keys(data).forEach(key => {
+            let element = document.querySelector(`[name="${key}"]`);
+            if (!element) {
+                if (key === 'finalDraft') element = document.getElementById('final-draft');
+                else if (key.startsWith('struct-') || key.startsWith('section-')) element = document.getElementById(key);
+                else element = document.getElementById(`response-${key.replace('response', '').toLowerCase()}`);
+            }
+            if (element) {
+                element.value = data[key];
+            }
+        });
+    };
+
+    const createNewProject = (name = "Untitled Project", initialData = {}) => {
+        if (appState.activeProjectId) {
+            saveActiveProjectData();
         }
+        const newProj = {
+            id: generateId(),
+            name: name,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            data: initialData
+        };
+        appState.projects.push(newProj);
+        appState.activeProjectId = newProj.id;
+        saveAppState();
+        loadActiveProject();
+        if(projectModal.classList.contains('show')) {
+            renderProjectList();
+        }
+    };
+
+    const switchProject = (id) => {
+        if (appState.activeProjectId === id) return;
+        saveActiveProjectData();
+        appState.activeProjectId = id;
+        saveAppState();
+        loadActiveProject();
+        renderProjectList();
+        projectModal.classList.remove('show');
+    };
+
+    const deleteProject = (id) => {
+        if (appState.projects.length <= 1) {
+            alert('Cannot delete the last project.');
+            return;
+        }
+        if (confirm('Are you sure you want to delete this project? This cannot be undone.')) {
+            appState.projects = appState.projects.filter(p => p.id !== id);
+            if (appState.activeProjectId === id) {
+                appState.activeProjectId = appState.projects[0].id;
+                loadActiveProject();
+            }
+            saveAppState();
+            renderProjectList();
+        }
+    };
+
+    const duplicateProject = (id) => {
+        saveActiveProjectData();
+        const projToCopy = appState.projects.find(p => p.id === id);
+        if (projToCopy) {
+            createNewProject(projToCopy.name + ' (Copy)', JSON.parse(JSON.stringify(projToCopy.data)));
+        }
+    };
+
+    const initApp = () => {
+        const rawData = localStorage.getItem('paperAssistantData');
+        if (rawData) {
+            try {
+                const parsed = JSON.parse(rawData);
+                if (parsed.activeProjectId && parsed.projects) {
+                    appState = parsed;
+                } else {
+                    // Migrate flat structure to new structure
+                    appState = { activeProjectId: null, projects: [] };
+                    createNewProject('Imported Project', parsed);
+                }
+            } catch (e) {
+                appState = { activeProjectId: null, projects: [] };
+                createNewProject('Untitled Project');
+            }
+        } else {
+            createNewProject('Untitled Project');
+        }
+        loadActiveProject();
+    };
+
+    // Auto-save on changing project name
+    currentProjectName.addEventListener('change', () => {
+        saveActiveProjectData();
     });
 
-    // Export JSON
-    btnExport.addEventListener('click', () => {
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        data['finalDraft'] = finalDraft.value;
-        data['responseChatgpt'] = document.getElementById('response-chatgpt').value;
-        data['responseClaude'] = document.getElementById('response-claude').value;
-        data['responseGemini'] = document.getElementById('response-gemini').value;
-        structIds.forEach(id => { data[id] = document.getElementById(id).value; });
-        sectionIds.forEach(id => { data[id] = document.getElementById(id).value; });
+    // Modal UI Logic
+    const renderProjectList = () => {
+        const query = projectSearch.value.toLowerCase();
+        const filter = projectFilter.value;
+        const sort = projectSort.value;
 
-        const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+        let filtered = appState.projects.filter(p => {
+            const matchesName = p.name.toLowerCase().includes(query);
+            const studyType = p.data && p.data.studyType ? p.data.studyType : 'Unknown';
+            const matchesFilter = filter === 'all' || studyType === filter;
+            return matchesName && matchesFilter;
+        });
+
+        filtered.sort((a, b) => {
+            if (sort === 'updated-desc') return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime() > 0 ? -1 : 1;
+            if (sort === 'updated-asc') return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime() > 0 ? -1 : 1;
+            if (sort === 'created-desc') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime() > 0 ? -1 : 1;
+            if (sort === 'name-asc') return a.name.localeCompare(b.name);
+            return 0;
+        });
+
+        projectList.innerHTML = '';
+        filtered.forEach(p => {
+            const studyType = p.data && p.data.studyType ? p.data.studyType : 'No Study Type';
+            const isActive = p.id === appState.activeProjectId;
+            
+            const item = document.createElement('div');
+            item.className = `project-item ${isActive ? 'active' : ''}`;
+            
+            const info = document.createElement('div');
+            info.className = 'project-item-info';
+            info.innerHTML = `
+                <h3>${p.name}</h3>
+                <div class="project-item-meta">
+                    <span>Type: ${studyType}</span>
+                    <span>Updated: ${new Date(p.updatedAt).toLocaleString()}</span>
+                </div>
+            `;
+            
+            const actions = document.createElement('div');
+            actions.className = 'project-item-actions';
+            
+            if (!isActive) {
+                const btnSwitch = document.createElement('button');
+                btnSwitch.textContent = 'Switch';
+                btnSwitch.className = 'primary-btn';
+                btnSwitch.onclick = () => switchProject(p.id);
+                actions.appendChild(btnSwitch);
+            }
+
+            const btnDup = document.createElement('button');
+            btnDup.textContent = 'Duplicate';
+            btnDup.onclick = () => duplicateProject(p.id);
+            actions.appendChild(btnDup);
+
+            const btnDel = document.createElement('button');
+            btnDel.textContent = 'Delete';
+            btnDel.onclick = () => deleteProject(p.id);
+            actions.appendChild(btnDel);
+
+            item.appendChild(info);
+            item.appendChild(actions);
+            projectList.appendChild(item);
+        });
+    };
+
+    btnManageProjects.addEventListener('click', () => {
+        saveActiveProjectData();
+        renderProjectList();
+        projectModal.classList.add('show');
+    });
+
+    closeModal.addEventListener('click', () => {
+        projectModal.classList.remove('show');
+    });
+
+    btnNewProject.addEventListener('click', () => {
+        createNewProject();
+    });
+
+    projectSearch.addEventListener('input', renderProjectList);
+    projectFilter.addEventListener('change', renderProjectList);
+    projectSort.addEventListener('change', renderProjectList);
+
+    btnExportAll.addEventListener('click', () => {
+        saveActiveProjectData();
+        const blob = new Blob([JSON.stringify(appState, null, 2)], {type: "application/json"});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `paper_assistant_data_${new Date().toISOString().slice(0,10)}.json`;
+        a.download = `paper_assistant_all_projects_${new Date().toISOString().slice(0,10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
     });
 
-    // Export CSV
-    btnExportCsv.addEventListener('click', () => {
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        data['finalDraft'] = finalDraft.value;
-        data['responseChatgpt'] = document.getElementById('response-chatgpt').value;
-        data['responseClaude'] = document.getElementById('response-claude').value;
-        data['responseGemini'] = document.getElementById('response-gemini').value;
-        structIds.forEach(id => { data[id] = document.getElementById(id).value; });
-        sectionIds.forEach(id => { data[id] = document.getElementById(id).value; });
+    btnImportProjects.addEventListener('click', () => fileImportProjects.click());
+    fileImportProjects.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const parsed = JSON.parse(event.target.result);
+                if (parsed.activeProjectId && parsed.projects) {
+                    if (confirm('Importing will overwrite your current projects. Do you want to proceed?')) {
+                        appState = parsed;
+                        saveAppState();
+                        loadActiveProject();
+                        renderProjectList();
+                        alert('All projects imported successfully.');
+                    }
+                } else {
+                    alert('Invalid multi-project JSON file.');
+                }
+            } catch (err) {
+                alert('Invalid JSON file.');
+            }
+        };
+        reader.readAsText(file);
+    });
 
+    // Save to Local Storage (Current Project explicitly)
+    btnSave.addEventListener('click', () => {
+        saveActiveProjectData();
+        alert('Current project saved to local storage.');
+    });
+
+    // Clear All (Current Project only)
+    btnClear.addEventListener('click', () => {
+        if(confirm('Are you sure you want to clear all fields for the CURRENT project?')) {
+            form.reset();
+            document.querySelectorAll('textarea').forEach(ta => ta.value = '');
+            saveActiveProjectData();
+        }
+    });
+
+    // Export JSON (Current Project)
+    btnExport.addEventListener('click', () => {
+        saveActiveProjectData();
+        const data = collectFormData();
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `paper_assistant_current_project_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    // Export CSV (Current Project)
+    btnExportCsv.addEventListener('click', () => {
+        saveActiveProjectData();
+        const data = collectFormData();
         const escapeCsv = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
         let csvContent = "Key,Value\n";
         Object.keys(data).forEach(key => {
             csvContent += `${escapeCsv(key)},${escapeCsv(data[key])}\n`;
         });
-
-        const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], {type: "text/csv;charset=utf-8;"}); // with BOM for Excel
+        const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], {type: "text/csv;charset=utf-8;"});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `paper_assistant_data_${new Date().toISOString().slice(0,10)}.csv`;
+        a.download = `paper_assistant_current_project_${new Date().toISOString().slice(0,10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
     });
 
-    // Import JSON
+    // Import JSON (Current Project or single flat project)
     btnImport.addEventListener('click', () => fileImport.click());
     fileImport.addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -180,24 +415,39 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = (event) => {
             try {
                 const data = JSON.parse(event.target.result);
-                Object.keys(data).forEach(key => {
-                    let element = document.querySelector(`[name="${key}"]`);
-                    if (!element) {
-                        if (key === 'finalDraft') element = document.getElementById('final-draft');
-                        else if (key.startsWith('struct-') || key.startsWith('section-')) element = document.getElementById(key);
-                        else element = document.getElementById(`response-${key.replace('response', '').toLowerCase()}`);
-                    }
-                    if (element) {
-                        element.value = data[key];
-                    }
-                });
-                alert('Data imported successfully.');
+                if (data.activeProjectId && data.projects) {
+                    alert('This is a multi-project file. Please use the "Import Projects" button in the Project Manager.');
+                    return;
+                }
+                
+                const action = confirm("Click 'OK' to create as a NEW project, or 'Cancel' to OVERWRITE the current project.");
+                if (action) {
+                    createNewProject('Imported Project', data);
+                    alert('Created new project from JSON.');
+                } else {
+                    Object.keys(data).forEach(key => {
+                        let element = document.querySelector(`[name="${key}"]`);
+                        if (!element) {
+                            if (key === 'finalDraft') element = document.getElementById('final-draft');
+                            else if (key.startsWith('struct-') || key.startsWith('section-')) element = document.getElementById(key);
+                            else element = document.getElementById(`response-${key.replace('response', '').toLowerCase()}`);
+                        }
+                        if (element) {
+                            element.value = data[key];
+                        }
+                    });
+                    saveActiveProjectData();
+                    alert('Overwrote current project successfully.');
+                }
             } catch (err) {
                 alert('Invalid JSON file.');
             }
         };
         reader.readAsText(file);
     });
+
+    // Init App
+    initApp();
 
     // Build Structure
     btnBuildStructure.addEventListener('click', () => {
