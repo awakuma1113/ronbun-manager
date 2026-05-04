@@ -6,8 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnExport = document.getElementById('btn-export');
     const btnImport = document.getElementById('btn-import');
     const fileImport = document.getElementById('file-import');
+    const btnExportCsv = document.getElementById('btn-export-csv');
+    const btnBuildStructure = document.getElementById('btn-build-structure');
     const btnGenerate = document.getElementById('btn-generate');
     const finalDraft = document.getElementById('final-draft');
+    
+    const structIds = ['struct-abstract', 'struct-introduction', 'struct-methods', 'struct-results', 'struct-discussion', 'struct-limitations', 'struct-conclusion'];
 
     // Tab Logic
     const tabBtns = document.querySelectorAll('.tab-btn');
@@ -45,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data['responseChatgpt'] = document.getElementById('response-chatgpt').value;
         data['responseClaude'] = document.getElementById('response-claude').value;
         data['responseGemini'] = document.getElementById('response-gemini').value;
+        structIds.forEach(id => { data[id] = document.getElementById(id).value; });
         
         localStorage.setItem('paperAssistantData', JSON.stringify(data));
         alert('Saved to local storage.');
@@ -56,7 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (savedData) {
             const data = JSON.parse(savedData);
             Object.keys(data).forEach(key => {
-                const element = document.querySelector(`[name="${key}"]`) || document.getElementById(key === 'finalDraft' ? 'final-draft' : `response-${key.replace('response', '').toLowerCase()}`);
+                let element = document.querySelector(`[name="${key}"]`);
+                if (!element) {
+                    if (key === 'finalDraft') element = document.getElementById('final-draft');
+                    else if (key.startsWith('struct-')) element = document.getElementById(key);
+                    else element = document.getElementById(`response-${key.replace('response', '').toLowerCase()}`);
+                }
                 if (element) {
                     element.value = data[key];
                 }
@@ -92,6 +102,31 @@ document.addEventListener('DOMContentLoaded', () => {
         URL.revokeObjectURL(url);
     });
 
+    // Export CSV
+    btnExportCsv.addEventListener('click', () => {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        data['finalDraft'] = finalDraft.value;
+        data['responseChatgpt'] = document.getElementById('response-chatgpt').value;
+        data['responseClaude'] = document.getElementById('response-claude').value;
+        data['responseGemini'] = document.getElementById('response-gemini').value;
+        structIds.forEach(id => { data[id] = document.getElementById(id).value; });
+
+        const escapeCsv = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
+        let csvContent = "Key,Value\n";
+        Object.keys(data).forEach(key => {
+            csvContent += `${escapeCsv(key)},${escapeCsv(data[key])}\n`;
+        });
+
+        const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], {type: "text/csv;charset=utf-8;"}); // with BOM for Excel
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `paper_assistant_data_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
     // Import JSON
     btnImport.addEventListener('click', () => fileImport.click());
     fileImport.addEventListener('change', (e) => {
@@ -102,7 +137,12 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const data = JSON.parse(event.target.result);
                 Object.keys(data).forEach(key => {
-                    const element = document.querySelector(`[name="${key}"]`) || document.getElementById(key === 'finalDraft' ? 'final-draft' : `response-${key.replace('response', '').toLowerCase()}`);
+                    let element = document.querySelector(`[name="${key}"]`);
+                    if (!element) {
+                        if (key === 'finalDraft') element = document.getElementById('final-draft');
+                        else if (key.startsWith('struct-')) element = document.getElementById(key);
+                        else element = document.getElementById(`response-${key.replace('response', '').toLowerCase()}`);
+                    }
                     if (element) {
                         element.value = data[key];
                     }
@@ -113,6 +153,38 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
         reader.readAsText(file);
+    });
+
+    // Build Structure
+    btnBuildStructure.addEventListener('click', () => {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        const valOrMissing = (val) => val && val.trim() !== '' ? val : '[要追記]';
+
+        const abstract = `Background: ${valOrMissing('')}\nMethods: ${valOrMissing(data.studyType)}\nResults: ${valOrMissing(data.keyResults)}\nConclusion: ${valOrMissing(data.mainMessage)}`;
+        
+        const introduction = `Background (What is known):\n${valOrMissing('')}\n\nKnowledge Gap (What is unknown):\n${valOrMissing('')}\n\nObjective:\n${valOrMissing(data.mainMessage)}`;
+        
+        const methods = `Study Design:\n${valOrMissing(data.studyType)}\n\nSetting and Participants:\n${valOrMissing('')}\n\nVariables and Measurements:\n${valOrMissing('')}\n\nStatistical Analysis:\n${valOrMissing('')}\n\nEthical Approval:\n${valOrMissing(data.ethicalApproval)}`;
+        
+        const results = `Participant Characteristics:\n${valOrMissing('')}\n\nPrimary Outcomes:\n${valOrMissing(data.keyResults)}\n\nSecondary Outcomes:\n${valOrMissing('')}`;
+        
+        const discussion = `Summary of Main Findings:\n${valOrMissing(data.mainMessage)}\n\nComparison with Previous Studies:\n${valOrMissing(data.references)}\n\nClinical Implications:\n${valOrMissing('')}`;
+        
+        const limitations = `Limitations:\n${valOrMissing(data.limitations)}`;
+        
+        const conclusion = `Conclusion:\n${valOrMissing(data.mainMessage)}`;
+
+        document.getElementById('struct-abstract').value = abstract;
+        document.getElementById('struct-introduction').value = introduction;
+        document.getElementById('struct-methods').value = methods;
+        document.getElementById('struct-results').value = results;
+        document.getElementById('struct-discussion').value = discussion;
+        document.getElementById('struct-limitations').value = limitations;
+        document.getElementById('struct-conclusion').value = conclusion;
+        
+        alert('Structure built successfully. Please check the templates.');
     });
 
     // Generate Prompts

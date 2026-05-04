@@ -21,6 +21,7 @@
                 <button type="button" id="btn-save">Save to Local</button>
                 <button type="button" id="btn-clear">Clear All</button>
                 <button type="button" id="btn-export">Export JSON</button>
+                <button type="button" id="btn-export-csv">Export CSV</button>
                 <input type="file" id="file-import" accept=".json" style="display: none;">
                 <button type="button" id="btn-import">Import JSON</button>
             </div>
@@ -103,6 +104,43 @@
         <!-- Right Panel: Output & Workspace -->
         <div class="right-panel">
             
+            <div class="structure-card card">
+                <h2>Paper Structure Builder</h2>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">日本語メモから英語論文の標準構成ドラフトを自動生成します。</p>
+                <button type="button" id="btn-build-structure" class="primary-btn" style="margin-bottom: 15px;">Build Structure</button>
+                
+                <div class="structure-grid" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div class="form-group">
+                        <label>Abstract Draft <button class="copy-btn" data-target-id="struct-abstract" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
+                        <textarea id="struct-abstract" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Introduction outline <button class="copy-btn" data-target-id="struct-introduction" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
+                        <textarea id="struct-introduction" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Methods outline <button class="copy-btn" data-target-id="struct-methods" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
+                        <textarea id="struct-methods" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Results outline <button class="copy-btn" data-target-id="struct-results" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
+                        <textarea id="struct-results" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Discussion outline <button class="copy-btn" data-target-id="struct-discussion" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
+                        <textarea id="struct-discussion" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Limitations paragraph <button class="copy-btn" data-target-id="struct-limitations" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
+                        <textarea id="struct-limitations" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Conclusion <button class="copy-btn" data-target-id="struct-conclusion" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
+                        <textarea id="struct-conclusion" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+
             <div class="task-selection card">
                 <h2>Task Selection</h2>
                 <div class="task-grid">
