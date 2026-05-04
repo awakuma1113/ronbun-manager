@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="safety-banner">
+        <strong>注意:</strong> 患者氏名、ID、生年月日、住所などの個人情報は入力しないでください。AIサービスに貼り付ける前に匿名化してください。<br>
+        ※本アプリはAPI未接続のローカル動作ツールです。AIの出力は必ず人間が確認し、文献情報はPubMed等で事実確認を行ってください。
+    </div>
+
+    <div class="app-container">
+        <!-- Left Panel: Input Form -->
+        <div class="left-panel card">
+            <h2>Input Form</h2>
+            
+            <div class="actions-row">
+                <button type="button" id="btn-save">Save to Local</button>
+                <button type="button" id="btn-clear">Clear All</button>
+                <button type="button" id="btn-export">Export JSON</button>
+                <input type="file" id="file-import" accept=".json" style="display: none;">
+                <button type="button" id="btn-import">Import JSON</button>
+            </div>
+
+            <form id="input-form">
+                <div class="form-group">
+                    <label for="manuscript-title">Manuscript title</label>
+                    <input type="text" id="manuscript-title" name="manuscriptTitle">
+                </div>
+
+                <div class="form-group">
+                    <label for="study-type">Study type</label>
+                    <select id="study-type" name="studyType">
+                        <option value="Case report">Case report</option>
+                        <option value="Retrospective study">Retrospective study</option>
+                        <option value="Prospective observational study">Prospective observational study</option>
+                        <option value="Clinical trial report">Clinical trial report</option>
+                        <option value="Conference abstract">Conference abstract</option>
+                        <option value="Letter to the editor">Letter to the editor</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="target-journal">Target journal</label>
+                    <input type="text" id="target-journal" name="targetJournal">
+                </div>
+
+                <div class="form-group">
+                    <label for="word-limit">Word limit</label>
+                    <input type="number" id="word-limit" name="wordLimit">
+                </div>
+
+                <div class="form-group">
+                    <label for="japanese-draft">Japanese draft / memo</label>
+                    <textarea id="japanese-draft" name="japaneseDraft" rows="4"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="english-draft">English draft</label>
+                    <textarea id="english-draft" name="englishDraft" rows="4"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="key-results">Key results</label>
+                    <textarea id="key-results" name="keyResults" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="main-message">Main message</label>
+                    <textarea id="main-message" name="mainMessage" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="limitations">Limitations</label>
+                    <textarea id="limitations" name="limitations" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="references">References / PMID / DOI</label>
+                    <textarea id="references" name="references" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="ethical-approval">Ethical approval / consent</label>
+                    <input type="text" id="ethical-approval" name="ethicalApproval">
+                </div>
+
+                <div class="form-group">
+                    <label for="coi">COI (Conflict of Interest)</label>
+                    <input type="text" id="coi" name="coi">
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" name="notes" rows="3"></textarea>
+                </div>
+            </form>
+        </div>
+
+        <!-- Right Panel: Output & Workspace -->
+        <div class="right-panel">
+            
+            <div class="task-selection card">
+                <h2>Task Selection</h2>
+                <div class="task-grid">
+                    <label><input type="radio" name="task" value="japanese_to_english" checked> Japanese to academic English</label>
+                    <label><input type="radio" name="task" value="english_polishing"> English polishing</label>
+                    <label><input type="radio" name="task" value="citation_check"> Citation check</label>
+                    <label><input type="radio" name="task" value="discussion_improvement"> Discussion improvement</label>
+                    <label><input type="radio" name="task" value="reviewer_simulation"> Reviewer simulation</label>
+                    <label><input type="radio" name="task" value="abstract_generation"> Abstract generation</label>
+                    <label><input type="radio" name="task" value="title_suggestion"> Title suggestion</label>
+                    <label><input type="radio" name="task" value="cover_letter"> Cover letter draft</label>
+                    <label><input type="radio" name="task" value="response_to_reviewers"> Response to reviewers</label>
+                </div>
+                <button type="button" id="btn-generate" class="primary-btn">Generate Prompts</button>
+            </div>
+
+            <div class="prompts-card card">
+                <h2>Generated Prompts</h2>
+                <div class="tabs">
+                    <button class="tab-btn active" data-target="prompt-chatgpt">ChatGPT</button>
+                    <button class="tab-btn" data-target="prompt-claude">Claude</button>
+                    <button class="tab-btn" data-target="prompt-gemini">Gemini</button>
+                </div>
+
+                <div class="tab-content active" id="prompt-chatgpt">
+                    <div class="prompt-header">
+                        <span class="ai-role">Focus: Logical structure, accuracy, avoiding overstatements</span>
+                        <button class="copy-btn" data-target-id="text-chatgpt">Copy Prompt</button>
+                    </div>
+                    <textarea id="text-chatgpt" readonly rows="10"></textarea>
+                </div>
+
+                <div class="tab-content" id="prompt-claude">
+                    <div class="prompt-header">
+                        <span class="ai-role">Focus: Natural flow, reviewer-friendly tone, discussion improvement</span>
+                        <button class="copy-btn" data-target-id="text-claude">Copy Prompt</button>
+                    </div>
+                    <textarea id="text-claude" readonly rows="10"></textarea>
+                </div>
+
+                <div class="tab-content" id="prompt-gemini">
+                    <div class="prompt-header">
+                        <span class="ai-role">Focus: Literature search, citation suggestions, PubMed queries</span>
+                        <button class="copy-btn" data-target-id="text-gemini">Copy Prompt</button>
+                    </div>
+                    <textarea id="text-gemini" readonly rows="10"></textarea>
+                </div>
+            </div>
+
+            <div class="responses-card card">
+                <h2>AI Responses (Paste here for comparison)</h2>
+                <div class="response-grid">
+                    <div class="response-col">
+                        <label for="response-chatgpt">ChatGPT Response</label>
+                        <textarea id="response-chatgpt" rows="8"></textarea>
+                    </div>
+                    <div class="response-col">
+                        <label for="response-claude">Claude Response</label>
+                        <textarea id="response-claude" rows="8"></textarea>
+                    </div>
+                    <div class="response-col">
+                        <label for="response-gemini">Gemini Response</label>
+                        <textarea id="response-gemini" rows="8"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="draft-card card">
+                <h2>Final Integrated Draft</h2>
+                <textarea id="final-draft" rows="12" placeholder="Combine and edit the best parts of the AI responses here..."></textarea>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
