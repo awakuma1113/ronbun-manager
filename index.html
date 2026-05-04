@@ -111,6 +111,39 @@
                     <label for="notes">Notes</label>
                     <textarea id="notes" name="notes" rows="3"></textarea>
                 </div>
+                
+                <div class="form-group">
+                    <label for="background">Background</label>
+                    <textarea id="background" name="background" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="objective">Objective</label>
+                    <textarea id="objective" name="objective" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="patients-description">Patients / Case description</label>
+                    <textarea id="patients-description" name="patientsDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="methods-details">Methods details</label>
+                    <textarea id="methods-details" name="methodsDetails" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="outcomes">Outcomes</label>
+                    <textarea id="outcomes" name="outcomes" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="discussion-points">Discussion points</label>
+                    <textarea id="discussion-points" name="discussionPoints" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="concern-uncertainty">Concern / uncertainty</label>
+                    <textarea id="concern-uncertainty" name="concernUncertainty" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="tables-figures-notes">Tables / figures notes</label>
+                    <textarea id="tables-figures-notes" name="tablesFiguresNotes" rows="3"></textarea>
+                </div>
             </form>
         </div>
 
@@ -124,33 +157,76 @@
                 
                 <div class="structure-grid" style="display: flex; flex-direction: column; gap: 10px;">
                     <div class="form-group">
-                        <label>Abstract Draft <button class="copy-btn" data-target-id="struct-abstract" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
+                        <label>Abstract draft（抄録案） <button class="copy-btn" data-target-id="struct-abstract" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
                         <textarea id="struct-abstract" rows="4"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Introduction outline <button class="copy-btn" data-target-id="struct-introduction" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
+                        <label>Introduction outline（序論アウトライン） <button class="copy-btn" data-target-id="struct-introduction" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
                         <textarea id="struct-introduction" rows="4"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Methods outline <button class="copy-btn" data-target-id="struct-methods" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
+                        <label>Methods outline（方法アウトライン） <button class="copy-btn" data-target-id="struct-methods" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
                         <textarea id="struct-methods" rows="4"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Results outline <button class="copy-btn" data-target-id="struct-results" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
+                        <label>Results outline（結果アウトライン） <button class="copy-btn" data-target-id="struct-results" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
                         <textarea id="struct-results" rows="4"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Discussion outline <button class="copy-btn" data-target-id="struct-discussion" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
+                        <label>Discussion outline（考察アウトライン） <button class="copy-btn" data-target-id="struct-discussion" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
                         <textarea id="struct-discussion" rows="4"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Limitations paragraph <button class="copy-btn" data-target-id="struct-limitations" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
+                        <label>Limitations paragraph（限界の記載案） <button class="copy-btn" data-target-id="struct-limitations" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
                         <textarea id="struct-limitations" rows="3"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Conclusion <button class="copy-btn" data-target-id="struct-conclusion" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
+                        <label>Conclusion（結論案） <button class="copy-btn" data-target-id="struct-conclusion" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy</button></label>
                         <textarea id="struct-conclusion" rows="3"></textarea>
                     </div>
+                </div>
+            </div>
+
+            <div class="section-prompt-card card">
+                <h2>Section-specific Prompt Mode</h2>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">セクションごとのプロンプトを生成します。</p>
+                <div class="form-group">
+                    <label for="section-selector">Select Section</label>
+                    <select id="section-selector">
+                        <option value="background">Background / Introduction（背景・序論）</option>
+                        <option value="methods">Methods（方法）</option>
+                        <option value="results">Results（結果）</option>
+                        <option value="discussion">Discussion（考察）</option>
+                        <option value="limitations">Limitations（限界）</option>
+                        <option value="abstract">Abstract（抄録）</option>
+                        <option value="title">Title（タイトル）</option>
+                        <option value="reviewer">Reviewer Check（査読者視点チェック）</option>
+                        <option value="full">Full Manuscript Structure（全体構成）</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="section-ai-selector">Select AI</label>
+                    <select id="section-ai-selector">
+                        <option value="chatgpt">ChatGPT (Logic, accuracy, no overstatement)</option>
+                        <option value="claude">Claude (Natural English, tone, flow)</option>
+                        <option value="gemini">Gemini (Citation check, literature, queries)</option>
+                    </select>
+                </div>
+                <button type="button" id="btn-generate-section-prompt" class="primary-btn" style="margin-bottom: 15px;">Generate section prompt</button>
+                
+                <div class="form-group">
+                    <label>Generated section prompt <button class="copy-btn" data-target-id="section-generated-prompt" style="padding: 2px 8px; font-size: 0.8rem; margin-left: 10px;">Copy section prompt</button></label>
+                    <textarea id="section-generated-prompt" rows="10"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>AI response memo</label>
+                    <textarea id="section-ai-response" name="sectionAiResponse" rows="8"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Final integrated text</label>
+                    <textarea id="section-final-text" name="sectionFinalText" rows="8"></textarea>
                 </div>
             </div>
 
