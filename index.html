@@ -26,6 +26,19 @@
                 <button type="button" id="btn-import">Import JSON</button>
             </div>
 
+            <div class="api-config" style="margin-bottom: 20px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 6px; background-color: #fafafa;">
+                <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--primary-blue);">OpenAI API Configuration</h3>
+                <p style="font-size: 0.8rem; color: #e53e3e; margin-bottom: 10px;"><strong>注意:</strong> 共有PCでは使用しないでください。入力したキーはブラウザにローカル保存されます。<br>患者情報が入力フォームに含まれていないか、送信前に必ず確認してください。</p>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label for="openai-api-key">API Key (sk-...)</label>
+                    <input type="password" id="openai-api-key" placeholder="Enter your OpenAI API key">
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button type="button" id="btn-save-api-key" style="padding: 4px 10px; font-size: 0.85rem;">Save Key</button>
+                    <span id="api-key-status" style="font-size: 0.85rem; color: green; display: none;">Saved to LocalStorage</span>
+                </div>
+            </div>
+
             <form id="input-form">
                 <div class="form-group">
                     <label for="manuscript-title">Manuscript title</label>
@@ -168,9 +181,13 @@
                 <div class="tab-content active" id="prompt-chatgpt">
                     <div class="prompt-header">
                         <span class="ai-role">Focus: Logical structure, accuracy, avoiding overstatements</span>
-                        <button class="copy-btn" data-target-id="text-chatgpt">Copy Prompt</button>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button type="button" id="btn-run-chatgpt" style="background-color: #10a37f; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Run with ChatGPT</button>
+                            <button class="copy-btn" data-target-id="text-chatgpt">Copy Prompt</button>
+                        </div>
                     </div>
-                    <textarea id="text-chatgpt" readonly rows="10"></textarea>
+                    <textarea id="text-chatgpt" rows="10"></textarea>
+                    <div id="chatgpt-api-status" style="margin-top: 8px; font-size: 0.85rem; color: #e53e3e;"></div>
                 </div>
 
                 <div class="tab-content" id="prompt-claude">

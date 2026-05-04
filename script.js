@@ -11,6 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnGenerate = document.getElementById('btn-generate');
     const finalDraft = document.getElementById('final-draft');
     
+    // API UI Elements
+    const inputApiKey = document.getElementById('openai-api-key');
+    const btnSaveApiKey = document.getElementById('btn-save-api-key');
+    const apiKeyStatus = document.getElementById('api-key-status');
+    const btnRunChatgpt = document.getElementById('btn-run-chatgpt');
+    const chatgptApiStatus = document.getElementById('chatgpt-api-status');
+    const responseChatgpt = document.getElementById('response-chatgpt');
+    
     const structIds = ['struct-abstract', 'struct-introduction', 'struct-methods', 'struct-results', 'struct-discussion', 'struct-limitations', 'struct-conclusion'];
 
     // Tab Logic
@@ -39,6 +47,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.textContent = originalText;
             }, 2000);
         });
+    });
+
+    // API Key Logic
+    const loadApiKey = () => {
+        const savedKey = localStorage.getItem('openaiApiKey');
+        if (savedKey) {
+            inputApiKey.value = savedKey;
+        }
+    };
+    loadApiKey();
+
+    btnSaveApiKey.addEventListener('click', () => {
+        const key = inputApiKey.value.trim();
+        if (key) {
+            localStorage.setItem('openaiApiKey', key);
+            apiKeyStatus.style.display = 'inline';
+            setTimeout(() => apiKeyStatus.style.display = 'none', 3000);
+        } else {
+            localStorage.removeItem('openaiApiKey');
+            alert('API Key removed.');
+        }
     });
 
     // Save to Local Storage
@@ -239,5 +268,63 @@ document.addEventListener('DOMContentLoaded', () => {
             const prompt = `${aiRoles[ai]}\n\n【指示】\n以下の【背景情報】と【対象テキスト】を踏まえ、次のタスクを実行してください。\n\n【タスク要件】\n${taskInstructions[task]}\n\n${contextText}`;
             document.getElementById(`text-${ai}`).value = prompt;
         });
+    });
+
+    // Run with ChatGPT API
+    btnRunChatgpt.addEventListener('click', async () => {
+        const apiKey = inputApiKey.value.trim();
+        const prompt = document.getElementById('text-chatgpt').value;
+
+        if (!apiKey) {
+            chatgptApiStatus.textContent = 'エラー: OpenAI API Keyを入力してください。';
+            return;
+        }
+        if (!prompt) {
+            chatgptApiStatus.textContent = 'エラー: プロンプトが空です。先にGenerate Promptsを実行してください。';
+            return;
+        }
+
+        chatgptApiStatus.style.color = '#3182ce';
+        chatgptApiStatus.textContent = 'リクエスト送信中... (数秒から数十秒かかります)';
+        btnRunChatgpt.disabled = true;
+
+        try {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4o',
+                    messages: [
+                        { role: 'user', content: prompt }
+                    ],
+                    temperature: 0.7
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                let errorMsg = `エラー (${response.status}): `;
+                if (data.error && data.error.message) {
+                    errorMsg += data.error.message;
+                } else {
+                    errorMsg += 'APIリクエストに失敗しました。';
+                }
+                throw new Error(errorMsg);
+            }
+
+            const aiText = data.choices[0].message.content;
+            responseChatgpt.value = aiText;
+            chatgptApiStatus.style.color = 'green';
+            chatgptApiStatus.textContent = '完了しました！';
+        } catch (error) {
+            chatgptApiStatus.style.color = '#e53e3e';
+            chatgptApiStatus.textContent = error.message;
+        } finally {
+            btnRunChatgpt.disabled = false;
+        }
     });
 });
